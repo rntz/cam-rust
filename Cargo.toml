@@ -1,0 +1,4 @@
+[package]
+name = "cam"
+version = "0.1.0"
+authors = ["Michael Arntzenius <daekharel@gmail.com>"]
