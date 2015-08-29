@@ -1,68 +1,27 @@
-#![allow(dead_code)]            // for now
-
 use std::mem;
 use std::rc::{Rc};
-use std::cmp::{Eq};
 
-// TODO
+use lang::*;
+
+// TODO: implement, somehow.
 fn rc_eq<T>(_a: &Rc<T>, _b: &Rc<T>) -> bool {
     panic!("reference equality not implemented")
 }
 
-// TODO: lookaside table recording which registers are in use at which time, for
-// the GC.
-
-// TODO: exceptions & exception handling
-
-// TODO: interned strings? Gc'ed strings?
-
-type Arity = u32;
-type Ident = Rc<String>;
-
-#[derive(Clone,Copy,PartialEq,Eq)]
-enum Prim { Equal, Add, Sub, Mul, Div, Print }
-use self::Prim::*;
-impl Prim {
-    fn arity(&self) -> Arity {
-        match *self {
-            Equal | Add | Sub | Mul | Div => 2,
-            Print => 1,
-        }
-    }
-}
-
-#[derive(Clone,PartialEq,Eq)]
-enum Lit { Nil, Bool(bool), Int(i64), String(Rc<String>), Prim(Prim) }
-
-type Expr = Box<Exp>;
-enum Exp {
-    Lit(Lit),
-    Var(Ident, u32),
-    Lam(Vec<Ident>, Expr),
-    App(Expr, Vec<Exp>),
-    // simultaneous binding; no let-bound expression sees any of the others.
-    Let(Vec<(Ident,Exp)>, Expr),
-}
-
-// Compiling expressions to VM code.
-// fn compile(e: &Exp, offset: Index) -> Vec<Instr> {
-// }
-
-
 // ---------- Virtual machine ----------
-type Reg = u32;
-type Upvar = u32;
-type SubfunctionIndex = u32;
-type Index = u32;        // index into instruction array (instruction "address")
+pub type Reg = u32;
+pub type Upvar = u32;
+pub type SubfunctionIndex = u32;
+pub type Index = u32;    // index into instruction array (instruction "address")
 
 #[derive(Clone)]
-enum Val {
+pub enum Val {
     Lit(Lit),
     // Cell(RefCell<Option<Val>>),
     // TODO?: should be a gc'ed pointer?
     Func(Rc<Proto>, Rc<Env>),
 }
-type Env = Vec<Val>;
+pub type Env = Vec<Val>;
 
 impl PartialEq for Val {
     fn eq(&self, other: &Val) -> bool {
@@ -76,16 +35,16 @@ impl PartialEq for Val {
 }
 impl Eq for Val {}
 impl Val {
-    fn as_int(&self) -> i64 {
+    pub fn as_int(&self) -> i64 {
         match *self { Val::Lit(Lit::Int(i)) => i,
                       _ => panic!("value not an int") }
     }
-    fn as_string(&self) -> Rc<String> {
+    pub fn as_string(&self) -> Rc<String> {
         match *self { Val::Lit(Lit::String(ref s)) => s.clone(),
                       _ => panic!("value not a string") }
     }
 
-    fn truthy(&self) -> bool {
+    pub fn truthy(&self) -> bool {
         match *self { Val::Lit(Lit::Nil) => false,
                       Val::Lit(Lit::Bool(false)) => false,
                       _ => true }
@@ -93,44 +52,44 @@ impl Val {
 }
 
 // A function prototype
-struct Proto {
-    instrs: Vec<Instr>,
-    arity: Arity,
-    subfunctions: Vec<Rc<Proto>>,
+pub struct Proto {
+    pub instrs: Vec<Instr>,
+    pub arity: Arity,
+    pub subfunctions: Vec<Rc<Proto>>,
 }
 
 #[derive(Clone)]
-enum Src { Temp, Lit(Lit), Reg(Reg), Upvar(Upvar), Cell(Upvar) }
+pub enum Src { Temp, Lit(Lit), Reg(Reg), Upvar(Upvar), Cell(Upvar) }
 #[derive(Clone)]
-enum InstrExp {
+pub enum InstrExp {
     Load(Src),
     Call(Src, Reg, Arity),
     Closure(SubfunctionIndex, Vec<Src>),
 }
 
 #[derive(Clone,Copy)]
-enum Dest { Temp, Ignore, Reg(Reg), If(Index), Ifnot(Index), Return }
-enum Instr {
+pub enum Dest { Temp, Ignore, Reg(Reg), If(Index), Ifnot(Index), Return }
+pub enum Instr {
     Put(Dest, InstrExp),
     Jump(u32),
 }
 
-struct Frame {
-    proto: Rc<Proto>,
-    env: Rc<Env>,
-    index: Index,
-    reg_base: usize,
+pub struct Frame {
+    pub proto: Rc<Proto>,
+    pub env: Rc<Env>,
+    pub index: Index,
+    pub reg_base: usize,
 }
 
-struct VM {
-    frame: Frame,
-    frames: Vec<Frame>,
-    regs: Vec<Val>,
-    temp: Option<Val>,
+pub struct VM {
+    pub frame: Frame,
+    pub frames: Vec<Frame>,
+    pub regs: Vec<Val>,
+    pub temp: Option<Val>,
 }
 
 impl VM {
-    fn step(&mut self) {
+    pub fn step(&mut self) {
         let index = self.frame.index as usize;
         assert!(index < self.frame.proto.instrs.len());
         let (dest, exp) = match self.frame.proto.instrs[index] {
@@ -152,7 +111,7 @@ impl VM {
         self.step_finish(dest, val);
     }
 
-    fn step_finish(&mut self, dest: Dest, val: Val) {
+    pub fn step_finish(&mut self, dest: Dest, val: Val) {
         match dest {
             Dest::Temp => { self.temp = Some(val); }
             Dest::Ignore => {}
@@ -167,12 +126,12 @@ impl VM {
         self.frame.index += 1;
     }
 
-    fn set_reg(&mut self, reg: Reg, val: Val) {
+    pub fn set_reg(&mut self, reg: Reg, val: Val) {
         // FIXME: needs to check whether self.regs is long enough!
         self.regs[self.frame.reg_base + reg as usize] = val;
     }
 
-    fn ret(&mut self, val: Val) {
+    pub fn ret(&mut self, val: Val) {
         self.frame = self.frames.pop().unwrap();
 
         // Analyze the destination and put the return value into it.
@@ -183,7 +142,7 @@ impl VM {
         }
     }
 
-    fn load(&self, src: &Src) -> Val {
+    pub fn load(&self, src: &Src) -> Val {
         match *src {
             Src::Temp => match self.temp {
                 Some(ref x) => x.clone(),
@@ -196,7 +155,7 @@ impl VM {
         }
     }
 
-    fn closure(&self, subfn: SubfunctionIndex, upvars: &Vec<Src>) -> Val {
+    pub fn closure(&self, subfn: SubfunctionIndex, upvars: &Vec<Src>) -> Val {
         Val::Func(self.frame.proto.subfunctions[subfn as usize].clone(),
                   Rc::new(upvars.iter().map(|x| self.load(x)).collect()))
     }
@@ -204,8 +163,8 @@ impl VM {
     // returns Option<Val> because we might be calling into a function, in which
     // case we change our state and return None, or we might be calling a
     // primitive, in which case we return Just(result).
-    fn call(&mut self, func_src: &Src, first_arg: Reg, num_args: Arity)
-            -> Option<Val> {
+    pub fn call(&mut self, func_src: &Src, first_arg: Reg, num_args: Arity)
+                -> Option<Val> {
         match self.load(func_src) {
             Val::Func(proto, env) => {
                 self.call_func(proto, env, first_arg, num_args);
@@ -217,7 +176,7 @@ impl VM {
         }
     }
 
-    fn call_func(&mut self, proto: Rc<Proto>, env: Rc<Env>, first_arg: Reg,
+    pub fn call_func(&mut self, proto: Rc<Proto>, env: Rc<Env>, first_arg: Reg,
                  num_args: Arity) {
         if num_args != proto.arity { panic!("wrong # args to function"); }
 
@@ -228,7 +187,7 @@ impl VM {
                                  reg_base: new_reg_base }));
     }
 
-    fn call_prim(&self, prim: Prim, first_arg: Reg, num_args: Arity) -> Val {
+    pub fn call_prim(&self, prim: Prim, first_arg: Reg, num_args: Arity) -> Val {
         if num_args != prim.arity() {
             panic!("wrong # of arguments to primitive");
         }
@@ -246,25 +205,7 @@ impl VM {
             })
     }
 
-    fn load_cell(&self, _v: &Val) -> Val {
+    pub fn load_cell(&self, _v: &Val) -> Val {
         unimplemented!()
     }
 }
-
-// fn do_call(src: &Src, _reg: Reg, _arity: Arity, temp: &Val, temp_is_set: bool, env: &Env, regs: &Vec<Val>) -> Val {
-//     let (_func_proto, _func_env) = match do_load(src, temp, temp_is_set, env, regs) {
-//         Val::Func(ref proto, ref env) => (proto.clone(), env.clone()),
-//         _ => panic!("calling a non-function"),
-//     };
-//     panic!("calling things unimplemented");
-// }
-
-// enum Src { Prev, Lit(Lit), Reg(Reg), Upvar(Upvar), Cell(Upvar) }
-// enum Dest { Return, Reg(Reg) }
-// enum Instr {
-//     Put(Dest, InstrExp),
-//     Jump(u32),
-//     Branch(Src, u32, u32),
-// }
-
-fn main() {}
