@@ -21,7 +21,7 @@ type Ident = Rc<String>;
 
 #[derive(Clone,Copy,PartialEq,Eq)]
 enum Prim { Equal, Add, Sub, Mul, Div, Print }
-use Prim::*;
+use self::Prim::*;
 impl Prim {
     fn arity(&self) -> Arity {
         match *self {
@@ -115,7 +115,6 @@ enum Instr {
     Jump(u32),
 }
 
-#[derive(Clone)]                // ugh
 struct Frame {
     proto: Rc<Proto>,
     env: Rc<Env>,
