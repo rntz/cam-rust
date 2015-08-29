@@ -6,4 +6,4 @@
 // TODO: interned strings? Gc'ed strings?
 
 pub mod lang;
-pub mod cam;
+pub mod vm;
