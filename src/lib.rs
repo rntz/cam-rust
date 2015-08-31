@@ -5,5 +5,6 @@
 
 // TODO: interned strings? Gc'ed strings?
 
+//mod gc;
 pub mod lang;
 pub mod vm;
