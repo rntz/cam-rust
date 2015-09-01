@@ -1,11 +1,9 @@
-#![allow(dead_code,unused_imports,unused_variables)]
-
 use std::rc::Rc;
 
 use lang::*;
 use cam::*;
 
-fn compile(e: &Exp) -> Vec<Instr> {
+pub fn compile(e: &Exp) -> Vec<Instr> {
     let mut s = State { instrs: vec![] };
     s.compile(e);
     s.instrs
