@@ -6,7 +6,7 @@ pub type InstrIndex = u16;
 
 use lang::*;
 
-#[derive(Clone)]
+#[derive(Clone,Debug)]
 pub enum Val { Lit(Lit), Func(Func) }
 type Env = Vec<Val>;
 
@@ -36,11 +36,13 @@ impl PartialEq for Val {
 }
 impl Eq for Val {}
 
-#[derive(Clone)]
+#[derive(Clone,Debug)]
 pub struct Func { proto: Rc<Proto>, env: Rc<Env> }
-pub struct Proto { pub instrs: Code, pub arity: Arity }
+#[derive(Debug)]
+pub struct Proto { pub code: Code, pub arity: Arity }
 
 pub type Code = Vec<Instr>;
+#[derive(Debug)]
 pub enum Instr {
     Access(VarIndex),
     Push(Lit),
@@ -67,6 +69,7 @@ struct Frame {
 struct FrameEnv {
     // This could perhaps be more efficiently accomplished by using is_unique on
     // an Rc<Env>, but that's still unstable.
+    // (edit) Actually, could we use borrow::Cow for this?
     shared: Rc<Env>,
     unique: Env,                // variables not yet closed over
 }
@@ -91,15 +94,45 @@ impl FrameEnv {
 }
 
 impl VM {
+    pub fn run(code: Code) -> Val {
+        let mut vm = VM {
+            stack: vec![],
+            frames: vec![],
+            frame: Frame {
+                proto: Rc::new(Proto{code: code, arity: 0}),
+                ip: 0,
+                env: FrameEnv{shared: Rc::new(vec![]), unique: vec![]}
+            }
+        };
+        while !vm.done() { vm.step() }
+        vm.value()
+    }
+
+    // only to be used within `run'
+    fn done(&self) -> bool {
+        // TODO: could do this more effectively with frames trickery.
+        self.frames.is_empty() &&
+            (self.frame.ip == self.frame.proto.code.len()
+             || match self.frame.proto.code[self.frame.ip] {
+                Instr::Return | Instr::TailApply(..) => true,
+                _ => false
+            })
+    }
+
+    fn value(mut self) -> Val {
+        debug_assert!(self.stack.len() == 1);
+        self.stack.pop().unwrap()
+    }
+
     pub fn step(&mut self) {
         use self::Instr::*;
         // avoids borrowing complications at the expense of a refcount bump.
         let proto = self.frame.proto.clone();
         let ip = self.frame.ip;
         self.frame.ip += 1;
-        assert!(ip < proto.instrs.len());
+        assert!(ip < proto.code.len());
 
-        match proto.instrs[ip] {
+        match proto.code[ip] {
             Access(i) => { let val = self.frame.env.access(i);
                            self.stack.push(val) }
             Push(ref l) => self.stack.push(Val::Lit(l.clone())),

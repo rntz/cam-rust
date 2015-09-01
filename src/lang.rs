@@ -6,8 +6,10 @@ pub type VarIndex = u32;
 pub type Arity = u32;
 pub type Ident = Rc<String>;
 
-#[derive(Clone,Copy,PartialEq,Eq)]
-pub enum Prim { Equal, Add, Sub, Mul, Div, Print }
+#[derive(Clone,Copy,PartialEq,Eq,Debug)]
+pub enum Prim {
+    Equal, Add, Sub, Mul, Div, Print,
+}
 pub use self::Prim::*;
 impl Prim {
     pub fn arity(&self) -> Arity {
@@ -18,7 +20,7 @@ impl Prim {
     }
 }
 
-#[derive(Clone,PartialEq,Eq)]
+#[derive(Clone,PartialEq,Eq,Debug)]
 pub enum Lit { Nil, Bool(bool), Int(i64), String(Rc<String>), Prim(Prim) }
 impl Lit {
     pub fn truthy(&self) -> bool {

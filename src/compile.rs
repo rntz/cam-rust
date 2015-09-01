@@ -20,7 +20,7 @@ impl State {
             Exp::Lit(ref l) => self.instrs.push(Push(l.clone())),
             Exp::Var(_, index) => self.instrs.push(Access(index)),
             Exp::Lam(ref ids, ref body) => {
-                let proto = Proto { instrs: compile(body),
+                let proto = Proto { code: compile(body),
                                     arity: ids.len() as Arity };
                 self.instrs.push(Closure(Rc::new(proto)));
             }
@@ -31,7 +31,7 @@ impl State {
             }
             Exp::Let(ref binds, ref body) => {
                 // TODO: better compilation strategy here.
-                let proto = Proto { instrs: compile(body),
+                let proto = Proto { code: compile(body),
                                     arity: binds.len() as Arity };
                 self.instrs.push(Closure(Rc::new(proto)));
                 for &(_, ref exp) in binds { self.compile(exp) }
