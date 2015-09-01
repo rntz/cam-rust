@@ -1,5 +1,6 @@
 use std::rc::{Rc};
 
+pub type VarIndex = u32;
 pub type Arity = u32;
 pub type Ident = Rc<String>;
 
@@ -17,11 +18,17 @@ impl Prim {
 
 #[derive(Clone,PartialEq,Eq)]
 pub enum Lit { Nil, Bool(bool), Int(i64), String(Rc<String>), Prim(Prim) }
+impl Lit {
+    pub fn truthy(&self) -> bool {
+        match *self { Lit::Nil | Lit::Bool(false) => false,
+                      _ => true }
+    }
+}
 
 pub type Expr = Box<Exp>;
 pub enum Exp {
     Lit(Lit),
-    Var(Ident, u32),
+    Var(Ident, VarIndex),
     Lam(Vec<Ident>, Expr),
     App(Expr, Vec<Exp>),
     // simultaneous binding; no let-bound expression sees any of the others.

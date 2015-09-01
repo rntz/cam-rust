@@ -19,9 +19,9 @@ pub enum Val {
     Lit(Lit),
     // Cell(RefCell<Option<Val>>),
     // TODO?: should be a gc'ed pointer?
-    Func(Rc<Proto>, Rc<Env>),
+    Func(Rc<Proto>, Rc<Upvars>),
 }
-pub type Env = Vec<Val>;
+pub type Upvars = Vec<Val>;
 
 impl PartialEq for Val {
     fn eq(&self, other: &Val) -> bool {
@@ -61,22 +61,22 @@ pub struct Proto {
 #[derive(Clone)]
 pub enum Src { Temp, Lit(Lit), Reg(Reg), Upvar(Upvar), Cell(Upvar) }
 #[derive(Clone)]
-pub enum InstrExp {
+pub enum Do {
     Load(Src),
     Call(Src, Reg, Arity),
-    Closure(SubfunctionIndex, Vec<Src>),
+    Close(SubfunctionIndex, Vec<Src>),
 }
 
 #[derive(Clone,Copy)]
 pub enum Dest { Temp, Ignore, Reg(Reg), If(Index), Ifnot(Index), Return }
 pub enum Instr {
-    Put(Dest, InstrExp),
+    Put(Dest, Do),
     Jump(u32),
 }
 
 pub struct Frame {
     pub proto: Rc<Proto>,
-    pub env: Rc<Env>,
+    pub env: Rc<Upvars>,
     pub index: Index,
     pub reg_base: usize,
 }
@@ -98,9 +98,9 @@ impl VM {
         };
 
         let val = match exp {
-            InstrExp::Load(ref src) => self.load(src),
-            InstrExp::Closure(subfn, ref srcs) => self.closure(subfn, srcs),
-            InstrExp::Call(ref src, reg, arity) =>
+            Do::Load(ref src) => self.load(src),
+            Do::Close(subfn, ref srcs) => self.closure(subfn, srcs),
+            Do::Call(ref src, reg, arity) =>
                 match self.call(src, reg, arity) {
                     Some(result) => result,
                     None => return
@@ -176,8 +176,8 @@ impl VM {
         }
     }
 
-    pub fn call_func(&mut self, proto: Rc<Proto>, env: Rc<Env>, first_arg: Reg,
-                 num_args: Arity) {
+    pub fn call_func(&mut self, proto: Rc<Proto>, env: Rc<Upvars>,
+                     first_arg: Reg, num_args: Arity) {
         if num_args != proto.arity { panic!("wrong # args to function"); }
 
         let new_reg_base = self.frame.reg_base + first_arg as usize;

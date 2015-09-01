@@ -7,4 +7,7 @@
 
 //mod gc;
 pub mod lang;
+pub mod cam;
 pub mod vm;
+pub mod compile;
+// mod rope;
