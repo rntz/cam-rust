@@ -1,6 +1,8 @@
 use std::rc::{Rc};
 
 pub type VarIndex = u32;
+// TODO?: use usize for arity everywhere except in representation of bytecode.
+// otherwise it just gets annoying.
 pub type Arity = u32;
 pub type Ident = Rc<String>;
 
@@ -31,6 +33,7 @@ pub enum Exp {
     Var(Ident, VarIndex),
     Lam(Vec<Ident>, Expr),
     App(Expr, Vec<Exp>),
+    If(Expr, Expr, Expr),
     // simultaneous binding; no let-bound expression sees any of the others.
     Let(Vec<(Ident,Exp)>, Expr),
 }

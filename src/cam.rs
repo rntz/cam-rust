@@ -38,7 +38,7 @@ impl Eq for Val {}
 
 #[derive(Clone)]
 pub struct Func { proto: Rc<Proto>, env: Rc<Env> }
-pub struct Proto { instrs: Code, arity: Arity }
+pub struct Proto { pub instrs: Code, pub arity: Arity }
 
 pub type Code = Vec<Instr>;
 pub enum Instr {
