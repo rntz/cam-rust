@@ -5,7 +5,10 @@
 
 // TODO: interned strings? Gc'ed strings?
 
+extern crate regex;
+
 //mod gc;
+pub mod sexp;
 pub mod lang;
 pub mod cam;
 pub mod compile;
