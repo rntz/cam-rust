@@ -8,6 +8,7 @@
 extern crate regex;
 
 //mod gc;
+pub mod string;
 pub mod sexp;
 pub mod lang;
 pub mod cam;

@@ -1,10 +1,10 @@
-use std::rc::{Rc};
+use string::Str;
 
 pub type VarIndex = u32;
 // TODO?: use usize for arity everywhere except in representation of bytecode.
 // otherwise it just gets annoying.
 pub type Arity = u32;
-pub type Ident = Rc<String>;
+pub type Ident = Str;
 
 #[derive(Clone,Copy,PartialEq,Eq,Debug)]
 pub enum Prim {
@@ -21,7 +21,7 @@ impl Prim {
 }
 
 #[derive(Clone,PartialEq,Eq,Debug)]
-pub enum Lit { Nil, Bool(bool), Int(i64), String(Rc<String>), Prim(Prim) }
+pub enum Lit { Nil, Bool(bool), Int(i64), String(Str), Prim(Prim) }
 impl Lit {
     pub fn truthy(&self) -> bool {
         match *self { Lit::Nil | Lit::Bool(false) => false,

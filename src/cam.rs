@@ -5,6 +5,7 @@ use std::mem;
 pub type InstrIndex = u16;
 
 use lang::*;
+use string::Str;
 
 #[derive(Clone,Debug)]
 pub enum Val { Lit(Lit), Func(Func) }
@@ -19,7 +20,7 @@ impl Val {
         match *self { Val::Lit(Lit::Int(x)) => x,
                       _ => panic!("non-integer value") }
     }
-    pub fn as_string(&self) -> Rc<String> {
+    pub fn as_string(&self) -> Str {
         match *self { Val::Lit(Lit::String(ref x)) => x.clone(),
                       _ => panic!("non-string value") }
     }
