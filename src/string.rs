@@ -4,7 +4,7 @@ use std::borrow::Borrow;
 use std::fmt::{Display,Formatter,Error};
 
 // Ugh. I hate having to do this, but.
-#[derive(Debug,PartialEq,Eq,PartialOrd,Ord,Clone)]
+#[derive(Debug,Hash,PartialEq,Eq,PartialOrd,Ord,Clone)]
 pub struct Str(Rc<String>);
 
 impl Str {
