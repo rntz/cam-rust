@@ -20,7 +20,7 @@ fn main() {
 
     // parse s-expression
     let s = Sexp::from_str(&*line).unwrap();
-    println!("SEXP: {:?}", s);
+    println!("SEXP: {}", s);
 
     // parse it into an expression
     let e = Exp::parse_from(&s).unwrap();

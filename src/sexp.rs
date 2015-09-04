@@ -1,5 +1,7 @@
 use std::collections::{HashMap};
 use std::str::FromStr;
+use std::fmt::{Display,Formatter};
+use std::fmt;
 
 use regex::Regex;
 
@@ -13,6 +15,23 @@ pub enum Sexp {
     List(Vec<Sexp>),
 }
 
+impl Display for Sexp {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
+        match *self {
+            Sexp::Int(i) => i.fmt(f),
+            Sexp::String(ref s) => write!(f, "{:?}", s as &str),
+            Sexp::Symbol(ref s) => s.fmt(f),
+            Sexp::List(ref v) => {
+                try!(f.write_str("("));
+                if !v.is_empty() { try!(v[0].fmt(f)) }
+                for e in &v[1..] { try!(f.write_str(" ")); try!(e.fmt(f)) }
+                f.write_str(")")
+            }
+        }
+    }
+}
+
+// Parsing s-expressions.
 impl FromStr for Sexp {
     type Err = ParseError;
     fn from_str(s: &str) -> Result<Sexp, ParseError> {
@@ -28,8 +47,6 @@ impl FromStr for Sexp {
         })
     }
 }
-
-// TODO: impl Display for Sexp<'a>
 
 // we can't get keys out of hashsets by looking them up, so we have to use an
 // identity hashmap for now.
