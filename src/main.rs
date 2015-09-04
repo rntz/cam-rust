@@ -20,23 +20,18 @@ fn main() {
 
     // parse s-expression
     let s = Sexp::from_str(&*line).unwrap();
-    println!("sexp: {:?}", s);
+    println!("SEXP: {:?}", s);
 
     // parse it into an expression
     let e = Exp::parse_from(&s).unwrap();
-    println!("exp: {:?}", e);
+    println!("EXP:  {:?}", e);
 
     // compile it
     let code = compile(&e);
-    println!("code: {:?}", code);
+    println!("CODE: {:?}", code);
 
     // run it
-    println!("");
+    println!("\nRUNNING:");
     let val = VM::run(code);
-    println!("value: {:?}", val);
-
-    // let exp = Exp::Lit(Lit::String(Str::new("foo")));
-    // let code = compile(&exp);
-    // let val = VM::run(code);
-    // println!("what's up, doc: {:?}", val);
+    println!("VALUE: {:?}", val);
 }
