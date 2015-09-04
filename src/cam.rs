@@ -64,7 +64,10 @@ pub enum Instr {
     // Let, // optimization
     // Prim(Prim), // optimization
 }
-// TODO: examine mem::{size,align}_of::<Instr>()
+// 2015-09-04
+// Instr size = 24, align = 8
+// Lit   size = 16
+// need to break up Push() into separate instrs.
 
 #[derive(Debug)]
 pub struct VM {
