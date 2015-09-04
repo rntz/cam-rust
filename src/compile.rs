@@ -19,7 +19,7 @@ impl State {
         use cam::Instr::*;
         match *e {
             Exp::Lit(ref l) => self.instrs.push(Push(l.clone())),
-            Exp::Var(_, index) => self.instrs.push(Access(index)),
+            Exp::Var(_, index) => self.instrs.push(Get(index)),
             Exp::Lam(ref ids, ref body) => {
                 // FIXME: variable binding order needs to be reversed!
                 // or maybe it needs to be reversed in the parser.

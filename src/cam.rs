@@ -54,7 +54,7 @@ pub struct Proto { pub code: Code, pub arity: Arity }
 pub type Code = Vec<Instr>;
 #[derive(Debug)]
 pub enum Instr {
-    Access(VarIndex),
+    Get(VarIndex),
     Push(Lit),
     Apply(Arity), TailApply(Arity),
     Closure(Rc<Proto>),
@@ -159,8 +159,8 @@ impl VM {
         }
 
         match proto.code[ip] {
-            Access(i) => { let val = self.frame.env.access(i);
-                           self.stack.push(val) }
+            Get(i) => { let val = self.frame.env.access(i);
+                        self.stack.push(val) }
             Push(ref l) => self.stack.push(Val::Lit(l.clone())),
             Closure(ref proto) =>
                 self.stack.push(Val::Func(Func {
