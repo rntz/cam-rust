@@ -6,6 +6,7 @@ use cam::*;
 pub fn compile(e: &Exp) -> Vec<Instr> {
     let mut s = State { instrs: vec![] };
     s.compile(e);
+    s.instrs.push(Instr::Return);
     s.instrs
 }
 

@@ -31,6 +31,7 @@ fn main() {
     println!("code: {:?}", code);
 
     // run it
+    println!("");
     let val = VM::run(code);
     println!("value: {:?}", val);
 

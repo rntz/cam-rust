@@ -3,6 +3,8 @@
 
 extern crate regex;
 
+const DEBUG: bool = true;
+
 pub mod parse;
 pub mod cam;
 pub mod compile;

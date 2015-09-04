@@ -57,16 +57,19 @@ pub enum Instr {
 }
 // TODO: examine mem::{size,align}_of::<Instr>()
 
+#[derive(Debug)]
 pub struct VM {
     stack: Vec<Val>,
     frame: Frame,
     frames: Vec<Frame>
 }
+#[derive(Debug)]
 struct Frame {
     proto: Rc<Proto>,
     ip: usize,
     env: FrameEnv,
 }
+#[derive(Debug)]
 struct FrameEnv {
     // This could perhaps be more efficiently accomplished by using is_unique on
     // an Rc<Env>, but that's still unstable.
@@ -127,11 +130,24 @@ impl VM {
 
     pub fn step(&mut self) {
         use self::Instr::*;
+
         // avoids borrowing complications at the expense of a refcount bump.
         let proto = self.frame.proto.clone();
         let ip = self.frame.ip;
         self.frame.ip += 1;
         assert!(ip < proto.code.len());
+
+        if ::DEBUG {
+            println!(" instr:  {:?}
+ stack:  {:?}
+ env:    {:?}
+ frames: {:?}
+",
+                     proto.code[ip],
+                     self.stack,
+                     self.frame.env,
+                     self.frames)
+        }
 
         match proto.code[ip] {
             Access(i) => { let val = self.frame.env.access(i);
@@ -154,8 +170,8 @@ impl VM {
 
     fn apply(&mut self, arity: Arity, tail: bool) {
         let num_vals = 1 + arity as usize;
-        assert!(num_vals < self.stack.len());
-        let func_idx = self.stack.len() - num_vals - 1;
+        assert!(num_vals <= self.stack.len());
+        let func_idx = self.stack.len() - num_vals;
         let func = self.stack[func_idx].clone();
         match func {
             Val::Func(f) => self.call(f, arity, func_idx, tail),

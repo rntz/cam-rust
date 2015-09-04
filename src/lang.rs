@@ -101,7 +101,7 @@ fn parse_form(env: &mut ParseEnv, form: &str, exps: &[Sexp]) -> ParseResult<Exp>
         }
         "app" => parse_app(env, args),
         "if" if args.len() != 3 => err("if takes three arguments"),
-        // TODO: make a macro for this shit.
+        // TODO: make a macro for this shit. maybe just use "try!"?
         "if"  => parse(&args[0], env).and_then(|cnd| {
             parse(&args[1], env).and_then(|thn| {
                 parse(&args[2], env).map(|els| {
