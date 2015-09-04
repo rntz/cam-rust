@@ -139,7 +139,10 @@ fn parse_form(env: &mut ParseEnv, form: &str, exps: &[Sexp]) -> ParseResult<Exp>
                 Sexp::List(ref v) => v,
                 _ => return err("fn takes a list of parameters"),
             };
-            params.iter().map(|e| match *e {
+            // The .rev() is necessary to maintain variable-binding order for
+            // DeBruijn indices. Otherwise multi-argument functions take their
+            // arguments in reverse of the expected order.
+            params.iter().rev().map(|e| match *e {
                 Sexp::Symbol(ref n) => Ok(n.clone()),
                 // TODO?: allow strings?
                 _ => err("fn parameters must be symbols")
