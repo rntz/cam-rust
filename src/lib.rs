@@ -3,6 +3,7 @@
 
 extern crate regex;
 
+pub mod parse;
 pub mod cam;
 pub mod compile;
 pub mod lang;

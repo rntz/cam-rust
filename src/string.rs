@@ -7,6 +7,10 @@ use std::fmt::{Display,Formatter,Error};
 #[derive(Debug,Hash,PartialEq,Eq,PartialOrd,Ord,Clone)]
 pub struct Str(Rc<String>);
 
+impl PartialEq<str> for Str {
+    fn eq(&self, other: &str) -> bool { &**self == other }
+}
+
 impl Str {
     pub fn new(s: &str) -> Str { Str(Rc::new(String::from(s))) }
 }
