@@ -21,6 +21,9 @@ impl State {
             Exp::Lit(ref l) => self.instrs.push(Push(l.clone())),
             Exp::Var(_, index) => self.instrs.push(Access(index)),
             Exp::Lam(ref ids, ref body) => {
+                // FIXME: variable binding order needs to be reversed!
+                // or maybe it needs to be reversed in the parser.
+                // I'm not sure.
                 let proto = Proto { code: compile(body),
                                     arity: ids.len() as Arity };
                 self.instrs.push(Closure(Rc::new(proto)));

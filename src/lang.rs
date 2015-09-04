@@ -10,21 +10,21 @@ pub type VarIndex = u32;
 pub type Arity = u32;
 pub type Ident = Str;
 
-#[derive(Clone,Copy,PartialEq,Eq,Debug)]
+#[derive(Clone,Copy,PartialEq,Eq,PartialOrd,Ord,Debug)]
 pub enum Prim {
-    Equal, Add, Sub, Mul, Div, Print,
+    Equal, Leq, Add, Sub, Mul, Div, Print,
 }
 pub use self::Prim::*;
 impl Prim {
     pub fn arity(&self) -> Arity {
         match *self {
-            Equal | Add | Sub | Mul | Div => 2,
+            Equal | Leq | Add | Sub | Mul | Div => 2,
             Print => 1,
         }
     }
 }
 
-#[derive(Clone,PartialEq,Eq,Debug)]
+#[derive(Clone,PartialEq,Eq,PartialOrd,Ord,Debug)]
 pub enum Lit { Nil, Bool(bool), Int(i64), String(Str), Prim(Prim) }
 impl Lit {
     pub fn truthy(&self) -> bool {
@@ -154,10 +154,10 @@ impl<'a> ParseFrom<&'a Sexp> for Prim {
     fn parse_from(s: &Sexp) -> ParseResult<Prim> {
         match *s {
             Sexp::Symbol(ref s) => match &**s {
-                "equal" => Ok(Equal),
-                "add" => Ok(Add),
-                "sub" => Ok(Mul),
-                "div" => Ok(Div),
+                "eq" => Ok(Equal),
+                "le" => Ok(Leq),
+                "add" => Ok(Add), "sub" => Ok(Sub),
+                "mul" => Ok(Mul), "div" => Ok(Div),
                 "print" => Ok(Print),
                 _ => Err(String::from("unrecognized prim"))
             },

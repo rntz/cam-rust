@@ -1,6 +1,7 @@
 // TODO: a way to create and initialize a VM.
 use std::rc::Rc;
 use std::mem;
+use std::cmp::Ordering;
 
 pub type InstrIndex = u16;
 
@@ -36,6 +37,14 @@ impl PartialEq for Val {
     }
 }
 impl Eq for Val {}
+impl PartialOrd for Val {
+    fn partial_cmp(&self, other: &Val) -> Option<Ordering> {
+        match (self, other) {
+            (&Val::Lit(ref a), &Val::Lit(ref b)) => a.partial_cmp(b),
+            _ => None,
+        }
+    }
+}
 
 #[derive(Clone,Debug)]
 pub struct Func { proto: Rc<Proto>, env: Rc<Env> }
@@ -214,6 +223,8 @@ impl VM {
         }
         Val::Lit(match prim {
                 Equal => Lit::Bool(args[0] == args[1]),
+                // NB. uses PartialOrd :(
+                Leq => Lit::Bool(args[0] <= args[1]),
                 Add => Lit::Int(args[0].as_int() + args[1].as_int()),
                 Sub => Lit::Int(args[0].as_int() - args[1].as_int()),
                 Mul => Lit::Int(args[0].as_int() * args[1].as_int()),
