@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::fmt;
 
 use string::Str;
 use sexp::Sexp;
@@ -45,13 +46,67 @@ pub enum Exp {
     Let(Vec<(Ident,Exp)>, Expr),
 }
 
+// ---------- Displaying exps. ----------
+impl fmt::Display for Exp {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(),fmt::Error> {
+        match *self {
+            Exp::Lit(ref l) => l.fmt(f),
+            Exp::Var(ref name, _) => name.fmt(f),
+            Exp::Lam(ref ids, ref body) => {
+                if ids.is_empty() { return write!(f, "\\ -> {}", body) }
+                try!(write!(f, "\\{}", ids[0]));
+                for i in &ids[1..] { try!(write!(f, ",{}", i)) }
+                write!(f, " -> {}", body)
+            }
+            Exp::App(ref e, ref args) => {
+                if args.is_empty() { return write!(f, "{}()", e) }
+                try!(write!(f, "{}({}", e, args[0]));
+                for a in &args[1..] { try!(write!(f, ", {}", a)) }
+                write!(f, ")")
+            }
+            Exp::If(ref cnd, ref thn, ref els) =>
+                write!(f, "if {} then {} else {}", cnd, thn, els),
+            Exp::Let(ref binds, ref body) => {
+                if binds.is_empty() { return write!(f, "let in {}", body) }
+                try!(write!(f, "let {} = {}", binds[0].0, binds[0].1));
+                for &(ref id, ref e) in &binds[1..] {
+                    try!(write!(f, ", {} = {}", id, e))
+                }
+                write!(f, " in {}", body)
+            }
+        }
+    }
+}
+
+impl fmt::Display for Lit {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(),fmt::Error> {
+        match *self {
+            Lit::Nil => f.write_str("nil"),
+            Lit::Bool(b) => b.fmt(f),
+            Lit::Int(i) => i.fmt(f),
+            Lit::String(ref s) => write!(f, "{:?}", s as &str),
+            Lit::Prim(ref p) => p.fmt(f),
+        }
+    }
+}
+
+impl fmt::Display for Prim {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(),fmt::Error> {
+        f.write_str(match *self {
+            Equal => "eq", Leq => "le",
+            Add => "add", Sub => "sub", Mul => "mul", Div => "div",
+            Print => "print",
+        })
+    }
+}
+
+// ---------- Parsing sexps into exps. ----------
 type ParseEnv = HashMap<Str,usize>;
 type ParseResult<A> = Result<A,String>;
 fn err<A,S>(s: S) -> ParseResult<A> where String: From<S> {
     Err(String::from(s))
 }
 
-// Parsing sexps into exps.
 fn parse(s: &Sexp, env: &mut ParseEnv) -> ParseResult<Exp> {
     Lit::parse_from(s).map(Exp::Lit).or_else(|_| {
         // but otherwise...

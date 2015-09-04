@@ -24,7 +24,7 @@ fn main() {
 
     // parse it into an expression
     let e = Exp::parse_from(&s).unwrap();
-    println!("EXP:  {:?}", e);
+    println!("EXP:  {}", e);
 
     // compile it
     let code = compile(&e);

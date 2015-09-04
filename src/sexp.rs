@@ -22,10 +22,10 @@ impl Display for Sexp {
             Sexp::String(ref s) => write!(f, "{:?}", s as &str),
             Sexp::Symbol(ref s) => s.fmt(f),
             Sexp::List(ref v) => {
-                try!(f.write_str("("));
+                try!(write!(f, "("));
                 if !v.is_empty() { try!(v[0].fmt(f)) }
-                for e in &v[1..] { try!(f.write_str(" ")); try!(e.fmt(f)) }
-                f.write_str(")")
+                for e in &v[1..] { try!(write!(f, " {}", e)) }
+                write!(f, ")")
             }
         }
     }
